@@ -30,6 +30,9 @@ import lpips
 from utils.scene_utils import render_training_image
 from time import time
 import copy
+from igs2gs.ip2p import InstructPix2Pix
+from igs2gs.igs2gs_pipeline import InstructGS2GSPipelineConfig
+
 
 to8b = lambda x : (255*np.clip(x.cpu().numpy(),0,1)).astype(np.uint8)
 
@@ -40,10 +43,17 @@ except ImportError:
     TENSORBOARD_FOUND = False
 def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_iterations, 
                          checkpoint_iterations, checkpoint, debug_from,
-                         gaussians, scene, stage, tb_writer, train_iter,timer):
+                         gaussians, scene, stage, tb_writer, train_iter,timer, config, diffusion_model):
     first_iter = 0
 
     gaussians.training_setup(opt)
+
+   # text embedding
+    text = "Change the color of vest of the person to green."
+    text_embedding = diffusion_model.pipe._encode_prompt(
+        text, device=diffusion_model.device, num_images_per_prompt=1, do_classifier_free_guidance=True, negative_prompt=""
+    )
+
     if checkpoint:
         # breakpoint()
         if stage == "coarse" and stage not in checkpoint:
@@ -180,7 +190,27 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
         for viewpoint_cam in viewpoint_cams:
             render_pkg = render(viewpoint_cam, gaussians, pipe, background, stage=stage,cam_type=scene.dataset_type)
             image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
+
+           # edit image
+            edited_image = diffusion_model.edit_image(
+                text_embedding.to(diffusion_model.device),
+                image.unsqueeze(0).to(diffusion_model.device),
+                viewpoint_cam.cached_image.unsqueeze(0).to(diffusion_model.device),
+                guidance_scale=config.guidance_scale,
+                image_guidance_scale=config.image_guidance_scale,
+                diffusion_steps=config.diffusion_steps,
+                lower_bound=config.lower_bound,
+                upper_bound=config.upper_bound,
+            )
+
+            if edited_image.squeeze().size() != image.size():
+                edited_image = torch.nn.functional.interpolate(edited_image, size=image.size()[1:], mode='bilinear')
+
+            edited_image = edited_image.squeeze().to(viewpoint_cam.original_image.dtype)
+            viewpoint_cam.original_image = edited_image
+
             images.append(image.unsqueeze(0))
+
             if scene.dataset_type!="PanopticSports":
                 gt_image = viewpoint_cam.original_image.cuda()
             else:
@@ -298,16 +328,18 @@ def training(dataset, hyper, opt, pipe, testing_iterations, saving_iterations, c
     # first_iter = 0
     tb_writer = prepare_output_and_logger(expname)
     gaussians = GaussianModel(dataset.sh_degree, hyper)
+    instruction = InstructGS2GSPipelineConfig()
+    instructPix2Pix = InstructPix2Pix(torch.device("cuda"), ip2p_use_full_precision=instruction.ip2p_use_full_precision)
     dataset.model_path = args.model_path
     timer = Timer()
     scene = Scene(dataset, gaussians, load_coarse=None)
     timer.start()
     scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_iterations,
                              checkpoint_iterations, checkpoint, debug_from,
-                             gaussians, scene, "coarse", tb_writer, opt.coarse_iterations,timer)
+                             gaussians, scene, "coarse", tb_writer, opt.coarse_iterations,timer, instruction, instructPix2Pix)
     scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_iterations,
                          checkpoint_iterations, checkpoint, debug_from,
-                         gaussians, scene, "fine", tb_writer, opt.iterations,timer)
+                         gaussians, scene, "fine", tb_writer, opt.iterations,timer, instruction, instructPix2Pix)
 
 def prepare_output_and_logger(expname):    
     if not args.model_path:
