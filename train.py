@@ -49,7 +49,7 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
     gaussians.training_setup(opt)
 
    # text embedding
-    text = "Change the color of vest of the person to green."
+    text = "Change the color of the dinosaur to red."
     text_embedding = diffusion_model.pipe._encode_prompt(
         text, device=diffusion_model.device, num_images_per_prompt=1, do_classifier_free_guidance=True, negative_prompt=""
     )
@@ -192,7 +192,7 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
             image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
 
            # edit image
-            if iteration > 5000 and stage == "fine":
+            if iteration > 10000 and stage == "fine":
                 if not viewpoint_cam.edited:
                     viewpoint_cam.edited = True
                     edited_image = diffusion_model.edit_image(
@@ -212,8 +212,8 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
                     edited_image = edited_image.squeeze().to(viewpoint_cam.original_image.dtype)
                     viewpoint_cam.original_image = edited_image
 
-                if iteration > 5001 and stage == "fine" and (iteration % 1000 == 0):
-                    viewpoint_cam.edited = False
+                # if iteration > 5001 and stage == "fine" and (iteration % 1000 == 0):
+                #     viewpoint_cam.edited = False
 
             images.append(image.unsqueeze(0))
 
