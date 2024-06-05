@@ -38,6 +38,7 @@ class Camera(nn.Module):
             self.data_device = torch.device("cuda")
         self.original_image = image.clamp(0.0, 1.0)[:3,:,:]
         self.cached_image = self.original_image
+        self.edited = False
         # breakpoint()
         # .to(self.data_device)
         self.image_width = self.original_image.shape[2]

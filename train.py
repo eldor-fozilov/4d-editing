@@ -193,22 +193,27 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
 
            # edit image
             if iteration > 5000 and stage == "fine":
-                edited_image = diffusion_model.edit_image(
-                    text_embedding.to(diffusion_model.device),
-                    image.unsqueeze(0).to(diffusion_model.device),
-                    viewpoint_cam.cached_image.unsqueeze(0).to(diffusion_model.device),
-                    guidance_scale=config.guidance_scale,
-                    image_guidance_scale=config.image_guidance_scale,
-                    diffusion_steps=config.diffusion_steps,
-                    lower_bound=config.lower_bound,
-                    upper_bound=config.upper_bound,
-                )
+                if not viewpoint_cam.edited:
+                    viewpoint_cam.edited = True
+                    edited_image = diffusion_model.edit_image(
+                        text_embedding.to(diffusion_model.device),
+                        image.unsqueeze(0).to(diffusion_model.device),
+                        viewpoint_cam.cached_image.unsqueeze(0).to(diffusion_model.device),
+                        guidance_scale=config.guidance_scale,
+                        image_guidance_scale=config.image_guidance_scale,
+                        diffusion_steps=config.diffusion_steps,
+                        lower_bound=config.lower_bound,
+                        upper_bound=config.upper_bound,
+                    )
 
-                if edited_image.squeeze().size() != image.size():
-                    edited_image = torch.nn.functional.interpolate(edited_image, size=image.size()[1:], mode='bilinear')
+                    if edited_image.squeeze().size() != image.size():
+                        edited_image = torch.nn.functional.interpolate(edited_image, size=image.size()[1:], mode='bilinear')
 
-                edited_image = edited_image.squeeze().to(viewpoint_cam.original_image.dtype)
-                viewpoint_cam.original_image = edited_image
+                    edited_image = edited_image.squeeze().to(viewpoint_cam.original_image.dtype)
+                    viewpoint_cam.original_image = edited_image
+
+                if iteration > 5001 and stage == "fine" and (iteration % 1000 == 0):
+                    viewpoint_cam.edited = False
 
             images.append(image.unsqueeze(0))
 
