@@ -49,7 +49,7 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
     gaussians.training_setup(opt)
 
    # text embedding
-    text = "Change the color of the dinosaur to red."
+    text = "Turn the broom into sword." # change the text to your desired text
     text_embedding = diffusion_model.pipe._encode_prompt(
         text, device=diffusion_model.device, num_images_per_prompt=1, do_classifier_free_guidance=True, negative_prompt=""
     )
