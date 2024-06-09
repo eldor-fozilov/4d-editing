@@ -448,7 +448,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--expname", type=str, default = "")
     parser.add_argument("--configs", type=str, default = "")
-    parser.add_argument("--prompt", type=str, default="Change the color of the dinosaur to red.")
+    parser.add_argument("--prompt", type=str, default="Make no changes.")
     parser.add_argument("--dataset_change_iter", type=int, default=10000)
     
     args = parser.parse_args(sys.argv[1:])
