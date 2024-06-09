@@ -43,13 +43,13 @@ except ImportError:
     TENSORBOARD_FOUND = False
 def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_iterations, 
                          checkpoint_iterations, checkpoint, debug_from,
-                         gaussians, scene, stage, tb_writer, train_iter,timer, config, diffusion_model):
+                         gaussians, scene, stage, tb_writer, train_iter,timer, config, diffusion_model, text, data_change_iter):
     first_iter = 0
 
     gaussians.training_setup(opt)
 
    # text embedding
-    text = "Turn the broom into sword." # change the text to your desired text
+   #  text = "Turn the broom into sword." # change the text to your desired text
     text_embedding = diffusion_model.pipe._encode_prompt(
         text, device=diffusion_model.device, num_images_per_prompt=1, do_classifier_free_guidance=True, negative_prompt=""
     )
@@ -192,7 +192,7 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
             image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
 
            # edit image
-            if iteration > 10000 and stage == "fine":
+            if iteration > data_change_iter and stage == "fine":
                 if not viewpoint_cam.edited:
                     viewpoint_cam.edited = True
                     edited_image = diffusion_model.edit_image(
@@ -330,7 +330,7 @@ def scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_i
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" +f"_{stage}_" + str(iteration) + ".pth")
-def training(dataset, hyper, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from, expname):
+def training(dataset, hyper, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from, expname, prompt, data_change_iter):
     # first_iter = 0
     tb_writer = prepare_output_and_logger(expname)
     gaussians = GaussianModel(dataset.sh_degree, hyper)
@@ -342,10 +342,10 @@ def training(dataset, hyper, opt, pipe, testing_iterations, saving_iterations, c
     timer.start()
     scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_iterations,
                              checkpoint_iterations, checkpoint, debug_from,
-                             gaussians, scene, "coarse", tb_writer, opt.coarse_iterations,timer, instruction, instructPix2Pix)
+                             gaussians, scene, "coarse", tb_writer, opt.coarse_iterations,timer, instruction, instructPix2Pix, prompt, data_change_iter)
     scene_reconstruction(dataset, opt, hyper, pipe, testing_iterations, saving_iterations,
                          checkpoint_iterations, checkpoint, debug_from,
-                         gaussians, scene, "fine", tb_writer, opt.iterations,timer, instruction, instructPix2Pix)
+                         gaussians, scene, "fine", tb_writer, opt.iterations,timer, instruction, instructPix2Pix, prompt, data_change_iter)
 
 def prepare_output_and_logger(expname):    
     if not args.model_path:
@@ -448,6 +448,8 @@ if __name__ == "__main__":
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--expname", type=str, default = "")
     parser.add_argument("--configs", type=str, default = "")
+    parser.add_argument("--prompt", type=str, default="Change the color of the dinosaur to red.")
+    parser.add_argument("--dataset_change_iter", type=int, default=10000)
     
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
@@ -464,7 +466,7 @@ if __name__ == "__main__":
     # Start GUI server, configure and run training
     network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-    training(lp.extract(args), hp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from, args.expname)
+    training(lp.extract(args), hp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from, args.expname, args.prompt, args.dataset_change_iter)
 
     # All done
     print("\nTraining complete.")
