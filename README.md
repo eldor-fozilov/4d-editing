@@ -102,7 +102,7 @@ You need to ensure that the data folder is orginized as follows after running mu
 
 ## Training
 
-## **The training script "train.py" contains the prompt variable "text" with some default text. To give different prompts to the diffusion model please change that default text.**
+## **The training script "train.py" takes the variable "prompt" as argument with some default text. To give different prompts to the diffusion model please change that default text.**
 
 
 For training synthetic scenes such as `bouncingballs`, run
