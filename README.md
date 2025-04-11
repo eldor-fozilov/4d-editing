@@ -1,7 +1,31 @@
+# 4D Instruct-GS2GS
 
-## This README file is taken from the ["4D Gaussian Splatting for Real-Time Dynamic Scene Rendering"](https://github.com/hustvl/4DGaussians) project github repository and adjusted for our 4D-editing project.
+Editing dynamic scenes is crucial in various real-world applications, such as virtual reality, augmented reality, and
+film production, where precise control and modification of scenes are necessary. Building on the advancements of Instruct-NeRF2NeRF and Instruct-GS2GS, we built this project, **4D Instruct-GS2GS**, which extends semantic editing capabilities to dynamic scenes. This method leverages an iterative dataset update technique for consistent 3D and temporal editing of Gaussian splatting scenes via text instructions. Our approach enables realistic global text edits on large real-world scenes and individual subjects, incorporating the temporal dimension while maintaining rapid training times (approximately 30 minutes per scene) and high
+rendering speeds (up to 82 FPS). This work significantly enhances the practicality and versatility of dynamic scene editing in 3D vision and computer graphics.
 
+## Examples of Edited Dynamic Scenes
 
+<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+
+  <figure style="text-align: center;">
+    <video width="500" controls>
+      <source src="edited_scenes/trex.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <figcaption><strong>Video 1:</strong> T-Rex Scene (<b>caption: Turn the skeleton into gold and the stone into
+red</b>)</figcaption>
+  </figure>
+
+  <figure style="text-align: center;">
+    <video width="500" controls>
+      <source src="edited_scenes/standup.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <figcaption><strong>Figure 2:</strong> Stand-up Scene (<b>caption: Change the outfit color into green</b>)</figcaption>
+  </figure>
+
+</div>
 
 ## Environmental Setups
 
@@ -52,15 +76,12 @@ For training hypernerf scenes such as `virg/broom`: Pregenerated point clouds by
 
 ## Training
 
-## **The training script "train.py" takes the variable "prompt" as argument with some default text. To give different prompts to the diffusion model please change that default text.**
-
-
 For training synthetic scenes such as `trex`, run
 
 ```
 python train.py -s data/dnerf/trex --port 6017 --expname "dnerf/trex" --configs arguments/dnerf/trex.py --prompt "Turn the skeleton into gold and the stone into red" --dataset_change_iter 10000
 ```
-
+### **The training script "train.py" takes the variable "prompt" as argument with some default text. To give different prompts to the diffusion model please change that default text.**
 
 ## Rendering
 
@@ -72,6 +93,6 @@ python render.py --model_path "output/dnerf/trex/"  --skip_train --configs argum
 
 
 ## Acknowledgements
-Thank you to the authors of the original projects for providing the codebase.
+This project is built on top of the of the codebase provided by these super cool projects:
 ["InstructGS2GS"](https://instruct-gs2gs.github.io/) and 
 ["4D Gaussian Splatting for Real-Time Dynamic Scene Rendering"](https://guanjunwu.github.io/4dgs/)
