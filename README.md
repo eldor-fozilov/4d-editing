@@ -6,26 +6,17 @@ rendering speeds (up to 82 FPS). This work significantly enhances the practicali
 
 ## Examples of Edited Dynamic Scenes
 
-<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+### 🦖 T-Rex Scene
+![T-Rex Scene](edited_scenes/trex.gif)
 
-  <figure style="text-align: center;">
-    <video width="500" controls>
-      <source src="edited_scenes/trex.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-    <figcaption><strong>Video 1:</strong> T-Rex Scene (<b>caption: Turn the skeleton into gold and the stone into
-red</b>)</figcaption>
-  </figure>
+**Caption: <span><em>Turn the skeleton into gold and the stone into red</em></span>**
 
-  <figure style="text-align: center;">
-    <video width="500" controls>
-      <source src="edited_scenes/standup.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-    <figcaption><strong>Figure 2:</strong> Stand-up Scene (<b>caption: Change the outfit color into green</b>)</figcaption>
-  </figure>
+---
 
-</div>
+### 🧍‍♂️ Standup Scene
+![Stand-up Scene](edited_scenes/standup.gif)
+
+**Caption: <span><em>Change the outfit color into green</em></span>**
 
 ## Environmental Setups
 
